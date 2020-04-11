@@ -1,0 +1,5 @@
+derivedSources=sources/derived
+
+$(derivedSources)/meanSupVelocityForce/meanSupVelocityForce.C
+
+LIB = $(CFDEM_LIB_DIR)/libfvOptionsCFDEM
