@@ -1,22 +1,24 @@
-This is a modified version of CFDEM.
-
-Author: Linhan Ge, School of Engineering, the University of Newcastle.
-
+# This is a modified version of [CFDEM](https://www.cfdem.com/).
+# Author: Linhan Ge, School of Engineering, the University of Newcastle.
 # Typical features:
+## A new CFD-DEM solver with diffiustion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
+* Grid cells that smaller than particles can be used to resolve the fluid flow.
+* Details can be found in the below paper. 
+  [Ge, L., Evans, G. M., & Moreno-Atanasio, R. (2020). CFD-DEM investigation of the interaction between a particle swarm and a stationary bubble: Particle-bubble collision efficiency. Powder Technology.](https://www.sciencedirect.com/science/article/pii/S0032591020302102)
+ *Please cite my paper if you use the solver in your research.*
 
-## CFD-DEM solver with diffiustion averaging method developed by Rui Sun
-Grid cells that smaller than particles can be used to resolve the fluid flow.
-Examples include are liquid-solid fluidization.
-Please cite the below paper if you use it in your research.
-Ge, L., Evans, G. M., & Moreno-Atanasio, R. (2020). CFD-DEM investigation of the interaction between a particle swarm and a stationary bubble: Particle-bubble collision efficiency. Powder Technology.
-
-## VOF-DEM solver with diffiustion averaging method developed by Rui Sun
-A gas-liquid-solid three phase flow solver is capable of resolving gas-liquid interface using extremely fine meshes whilst ensuring particle dynamics can be resolved physically.
-Please cite the paper below if you use it in your research.
-Ge, L., Peng, Z., Moreno-Atanasio, R., Doroodchi, E., & Evans, G. M. (2020). A Three-dimensional VOF-DEM Model for Simulating Particle Dynamics in the Liquid Slugs of a Vertical Gas-Liquid-Solid Taylor Flow Microreactor. Industrial & Engineering Chemistry Research.
+## VOF-DEM solver with diffiustion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
+* A gas-liquid-solid three phase flow solver is capable of resolving gas-liquid interface using extremely fine meshes whilst ensuring particle dynamics can be resolved physically.
+* Details can be found in the below paper. 
+  [Ge, L., Peng, Z., Moreno-Atanasio, R., Doroodchi, E., & Evans, G. M. (2020). A Three-dimensional VOF-DEM Model for Simulating Particle Dynamics in the Liquid Slugs of a Vertical Gas-Liquid-Solid Taylor Flow Microreactor. Industrial & Engineering Chemistry Research.](https://pubs.acs.org/doi/abs/10.1021/acs.iecr.0c00108)
+*Please cite my paper if you use the solver in your research.*
 
 # Installation procedures:
-
-* Install CFDEM as described at https://www.cfdem.com/media/CFDEM/docu/CFDEMcoupling_Manual.html.
-
-* Using the CFDEM repository here to include the three solvers, cfdemSolverDiffusio (CFD-DEM), cfdemSolverVoF (VOF-DEM) and cfdemSolverVoFCyclic (VOF-DEM compatible with periodic domain).
+* Install OpenFOAM 5.x https://openfoamwiki.net/index.php/Installation/Linux/OpenFOAM-5.x/Ubuntu.
+* Install the smoothing curvature feature for interFoam developed by [Kevin van As](https://github.com/floquation/OF-kva_interfaceProperties).
+* Install CFDEM as described in the [CFDEM manual](https://www.cfdem.com/media/CFDEM/docu/CFDEMcoupling_Manual.html) but using the CFDEM repository here. Noting that the folder name should be changed from CFDEMcoupling-LG to CFDEMcoupling-PUBLIC-5.x.
+* Please set up your own cases following the examples in the tutorials.
+# List of new solvers
+* cfdemSolverDiffusio (CFD-DEM)
+* cfdemSolverVoF (VOF-DEM)
+* cfdemSolverVoFCyclic (VOF-DEM compatible with periodic domains)
