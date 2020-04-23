@@ -1,7 +1,7 @@
 # This is a modified version of [CFDEM](https://www.cfdem.com/).
 # Author: Linhan Ge, School of Engineering, the University of Newcastle.
 # Typical features:
-## CFD-DEM solver with diffiustion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
+## CFD-DEM solver with diffusion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
 * Grid cells that smaller than particles can be used to resolve the fluid flow.
 * Details can be found in the below paper:
 
@@ -10,7 +10,7 @@
 
  *Please cite my paper if you use the solver in your research.*
 
-## VOF-DEM solver with diffiustion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
+## VOF-DEM solver with diffusion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
 * A gas-liquid-solid three phase flow solver is capable of resolving gas-liquid interface using extremely fine meshes whilst ensuring particle dynamics can be resolved physically.
 * Details can be found in the below paper:
 
