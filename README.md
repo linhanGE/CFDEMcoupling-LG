@@ -3,14 +3,21 @@
 # Typical features:
 ## CFD-DEM solver with diffiustion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
 * Grid cells that smaller than particles can be used to resolve the fluid flow.
-* Details can be found in the below paper.\ 
-  [Ge, L., Evans, G. M., & Moreno-Atanasio, R. (2020). CFD-DEM investigation of the interaction between a particle swarm and a stationary bubble: Particle-bubble collision efficiency. Powder Technology.](https://www.sciencedirect.com/science/article/pii/S0032591020302102)\
+* Details can be found in the below paper.
+
+[Ge, L., Evans, G. M., & Moreno-Atanasio, R. (2020). CFD-DEM investigation of the interaction between a particle swarm and a stationary bubble: Particle-bubble collision efficiency. Powder Technology.](https://www.sciencedirect.com/science/article/pii/S0032591020302102)
+
+
  *Please cite my paper if you use the solver in your research.*
 
 ## VOF-DEM solver with diffiustion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
 * A gas-liquid-solid three phase flow solver is capable of resolving gas-liquid interface using extremely fine meshes whilst ensuring particle dynamics can be resolved physically.
-* Details can be found in the below paper.\ 
-  [Ge, L., Peng, Z., Moreno-Atanasio, R., Doroodchi, E., & Evans, G. M. (2020). A Three-dimensional VOF-DEM Model for Simulating Particle Dynamics in the Liquid Slugs of a Vertical Gas-Liquid-Solid Taylor Flow Microreactor. Industrial & Engineering Chemistry Research.](https://pubs.acs.org/doi/abs/10.1021/acs.iecr.0c00108)\
+* Details can be found in the below paper.
+
+
+[Ge, L., Peng, Z., Moreno-Atanasio, R., Doroodchi, E., & Evans, G. M. (2020). A Three-dimensional VOF-DEM Model for Simulating Particle Dynamics in the Liquid Slugs of a Vertical Gas-Liquid-Solid Taylor Flow Microreactor. Industrial & Engineering Chemistry Research.](https://pubs.acs.org/doi/abs/10.1021/acs.iecr.0c00108)
+
+
 *Please cite my paper if you use the solver in your research.*
 
 # Installation procedures:
