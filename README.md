@@ -26,6 +26,6 @@
 * Install CFDEM as described in the [CFDEM manual](https://www.cfdem.com/media/CFDEM/docu/CFDEMcoupling_Manual.html) but using the CFDEM repository here. Noting that the folder name should be changed from *CFDEMcoupling-LG* to *CFDEMcoupling-PUBLIC-5.x*.
 * Please set up your own cases following the examples in the tutorials.
 # List of new solvers
-* cfdemSolverDiffusio (CFD-DEM)
+* cfdemSolverDiffusion (CFD-DEM)
 * cfdemSolverVoF (VOF-DEM)
 * cfdemSolverVoFCyclic (VOF-DEM compatible with periodic domains)
