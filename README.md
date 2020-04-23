@@ -11,7 +11,7 @@
  *Please cite my paper if you use the solver in your research.*
 
 ## VOF-DEM solver with diffusion averaging method developed by [Sun and Xiao](https://www.sciencedirect.com/science/article/pii/S030193221500186X)
-* A gas-liquid-solid three phase flow solver is capable of resolving gas-liquid interface using extremely fine meshes whilst ensuring particle dynamics can be resolved physically.
+* The solver is a gas-liquid-solid three phase flow solver which is capable of resolving gas-liquid interfaces using extremely fine meshes whilst guaranteeing physical particle dynamics.
 * Details can be found in the below paper:
 
 
