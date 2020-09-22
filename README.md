@@ -23,7 +23,7 @@
 # Installation procedures:
 * Install [OpenFOAM 5.x](https://openfoamwiki.net/index.php/Installation/Linux/OpenFOAM-5.x/Ubuntu).
 * Install the smoothing curvature feature for interFoam developed by [Kevin van As](https://github.com/floquation/OF-kva_interfaceProperties).
-* Install CFDEM as described in the [CFDEM manual](https://www.cfdem.com/media/CFDEM/docu/CFDEMcoupling_Manual.html) but using the CFDEM repository here. Noting that the folder name should be changed from *CFDEMcoupling-LG* to *CFDEMcoupling-PUBLIC-5.x*.
+* Install CFDEM as described in the [CFDEM manual](https://www.cfdem.com/media/CFDEM/docu/CFDEMcoupling_Manual.html) but using the CFDEM repository here and [LIGGGHTS-LG](https://github.com/linhanGE/LIGGGHTS-PUBLIC) repository (HPC branch). Noting that the folder name should be changed from *CFDEMcoupling-LG* to *CFDEMcoupling-PUBLIC-5.x*.
 * Please set up your own cases following the examples in the tutorials.
 # List of new solvers
 * cfdemSolverDiffusion (CFD-DEM)
