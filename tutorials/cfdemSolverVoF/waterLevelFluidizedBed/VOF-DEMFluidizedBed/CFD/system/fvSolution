@@ -1,0 +1,128 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "(alphaHeavy|alpha.water)"
+    {
+        nAlphaCorr      1;
+        nAlphaSubCycles 1;
+        cAlpha          1;
+		
+		MULESCorr       yes;
+        nLimiterIter    10;
+
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-10;
+        relTol          0;
+        maxIter         100;
+    }
+
+    "pcorr.*"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-5;
+        relTol          0;
+    }
+
+    p_rgh
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-07;
+        relTol          0.05;
+    }
+
+    p_rghFinal
+    {
+        $p_rgh;
+        relTol          0;
+    }
+	
+	
+	"(voidfraction|Us|Ksl|dSmoothing|UsNext|f)"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-05;
+        relTol          0;
+    }
+	
+	"(tempDiffVector|vSmoothField)"
+	{
+        solver        PCG;
+        preconditioner  DIC;
+        tolerance       1e-5;
+        relTol          0;
+        /*solver          GAMG;
+        tolerance       1e-05;
+        relTol          0;
+        smoother        GaussSeidel;*/
+    }
+	
+	"(tempDiffScalar|sSmoothField)"
+    {
+        solver        PCG;
+        preconditioner  DIC;
+        tolerance       1e-5;
+        relTol          0;
+    }
+
+    "(U|k|epsilon|omega|R|nuTilda)"
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-06;
+        relTol          0.1;
+		/*solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-06;
+        relTol          0.1;*/
+    }
+
+    "(U|k|epsilon|omega|R|nuTilda)Final"
+    {
+        $U;
+        relTol          0;
+    }
+}
+
+PISO
+{
+    momentumPredictor   no;
+    nOuterCorrectors    1;
+    nCorrectors         3;
+    nNonOrthogonalCorrectors 0;
+    pRefCell            0;
+    pRefValue           0;
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+    consistent      yes;
+
+    residualControl
+    {
+        p               1e-2;
+        U               1e-3;
+       "(tempDiffScalar|tempDiffVector)" 1e-3;
+    }
+}
+// ************************************************************************* //

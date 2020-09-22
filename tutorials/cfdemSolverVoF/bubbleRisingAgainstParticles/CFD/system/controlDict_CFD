@@ -1,0 +1,245 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  3.0.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     interFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1;
+
+deltaT          1e-7;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.01;
+
+purgeWrite      0;
+
+writeFormat     binary;
+
+writePrecision  6;
+
+writeCompression uncompressed;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.2;
+maxAlphaCo      0.2;
+
+maxDeltaT       1;
+
+DimensionedConstants
+{
+    unitSet             CGS; // SI; // USCS; // 
+
+    CGSCoeffs
+    {
+        universal
+        {
+            c               c [ 0 1 -1 0 0 0 0 ] 2.99792e+10; // speed of light in vacuum (cm/s)
+            G               G [ -1 3 -2 0 0 0 0 ] 6.67429e-8; // gravitational constant (cm^3/(gs^2))
+            h               h [ 1 2 -1 0 0 0 0 ] 6.62607e-27; // Planck's constant (erg.s)
+        }
+        electromagnetic
+        {
+            e               e [ 0 0 1 0 0 1 0 ] 4.803204e-10; // elementary charge (statcoulomb)
+        }
+        atomic
+        {
+            me              me [ 1 0 0 0 0 0 0 ] 9.10938e-28; // electron mass (g)
+            mp              mp [ 1 0 0 0 0 0 0 ] 1.67262e-24; // proton mass (g)
+        }
+        physicoChemical
+        {
+            mu              mu [ 1 0 0 0 0 0 0 ] 1.66054e-24; // atomic mass unit (g)
+            k               k [ 1 2 -2 -1 0 0 0 ] 1.38065e-16; // Boltzman constant (erg/K)
+        }
+        standard
+        {
+            //- Standard pressure [bar]
+            Pstd            Pstd [ 1 -1 -2 0 0 0 0 ] 1000000; // 1 bar (barye)
+            //- Standard temperature [degK]
+            Tstd            Tstd [ 0 0 0 1 0 0 0 ] 298.15; // should be same as in SI unit system
+        }
+    }
+}
+
+functions
+{
+  riseVelocity
+  {
+    libs            ("libutilityFunctionObjects.so");
+    
+    type coded;
+    
+    name riseVelocity;
+
+    codeExecute
+    #{
+        const volScalarField& alpha =
+            mesh().lookupObject<volScalarField>("alpha.water");
+        const volVectorField& U =
+            mesh().lookupObject<volVectorField>("U");
+        const volVectorField& centers = mesh().C();
+        const scalarField& vols = mesh().V();
+        
+        const objectRegistry& db = mesh().thisDb();
+        scalar ts = db.time().value();
+        const dictionary& transportProperties =
+            db.lookupObject<IOdictionary>
+            (
+                "transportProperties"
+            );
+
+        dictionary alpha2
+        (
+            transportProperties.subDict("air")
+        );
+        
+        dimensionedScalar rhoBubble
+        (
+            "rhoBubble",
+            dimDensity,
+            alpha2.lookup("rho")
+        );
+        
+        // threshold for interface
+        scalar th = 0.5;
+        // water level in the well
+        scalar ht = 1;
+        // sum of mass
+        scalar sumMass = 0;
+        // sum of volume
+        scalar sumVol = 0;
+        // sum of y by mass
+        scalar sumX = 0;
+        scalar sumY = 0;
+        scalar sumZ = 0;
+        // sum of Uz by volume
+        scalar sumUZ = 0;
+        //volume of liquid in well
+        scalar vl = 0;
+        
+        forAll(centers, I)
+        {
+            if ( alpha[I] < th && centers[I].y() < ht )
+            {
+                //Mass center
+                sumY    += (1 - alpha[I])*rhoBubble.value()*vols[I]*centers[I].y();
+                sumX    += (1 - alpha[I])*rhoBubble.value()*vols[I]*centers[I].x();
+                sumZ    += (1 - alpha[I])*rhoBubble.value()*vols[I]*centers[I].z();
+                sumMass += (1 - alpha[I])*rhoBubble.value()*vols[I];
+	              
+	        //Rising Velocity
+                sumUZ   += (1 - alpha[I])*vols[I]*U[I].z();
+                sumVol  += (1 - alpha[I])*vols[I];
+            } else if ( centers[I].z() < ht ) {
+                vl += alpha[I]*vols[I];
+            }
+        }
+        
+        reduce(sumY, sumOp<scalar>());
+        reduce(sumX, sumOp<scalar>());
+        reduce(sumZ, sumOp<scalar>());
+        reduce(sumMass, sumOp<scalar>());
+        reduce(sumUZ, sumOp<scalar>());
+        reduce(sumVol, sumOp<scalar>());
+        reduce(vl, sumOp<scalar>());
+        
+        // center of gravity
+        scalar cgX = sumX/max(sumMass, SMALL);
+        scalar cgY = sumY/max(sumMass, SMALL);
+        scalar cgZ = sumZ/max(sumMass, SMALL);
+        
+        // rising velocity
+        scalar vr = sumUZ/max(sumVol, SMALL);
+        
+        const volScalarField& p =
+            mesh().lookupObject<volScalarField>("p");
+        const faceList& ff = mesh().faces();
+        const pointField& pp = mesh().points();
+        // Pressure inside the bubble
+        scalar pBubble = 0;
+        
+        forAll(centers, I)
+        {
+            const cell& cc = mesh().cells()[I];
+            labelList pLabels(cc.labels(ff));
+            pointField pLocal(pLabels.size(), vector::zero);
+
+            forAll (pLabels, J)
+            {
+                pLocal[J] = pp[pLabels[J]];
+            }
+            
+            if
+            (
+              sign(Foam::max(pLocal& vector(1,0,0)) - cgX) == 1 &&
+              sign(cgX - Foam::min(pLocal& vector(1,0,0))) == 1 &&
+              sign(Foam::max(pLocal& vector(0,1,0)) - cgY) == 1 &&
+              sign(cgY - Foam::min(pLocal& vector(0,1,0))) == 1 &&
+              sign(Foam::max(pLocal& vector(0,0,1)) - cgZ) == 1 &&
+              sign(cgZ - Foam::min(pLocal& vector(0,0,1))) == 1 
+            )
+            {
+                pBubble = mag(p[I]);
+                break;
+            }
+        }
+        reduce(pBubble, sumOp<scalar>());
+        
+        if (Pstream::master())
+        {
+
+            fileName myDir = mesh().time().rootPath()/"bubbleData";  
+            mkDir(myDir);           
+            fileName myFile=myDir/"bubble.txt";
+            OFstream myStream
+            (
+                myFile,
+                IOstream::ASCII,
+                IOstream::currentVersion,
+                IOstream::UNCOMPRESSED,
+                true
+            );
+            scalar tot = 72.0;
+            Info<< "Writing rising velocity, CG, "
+                << "volume of bubble, volume of liquid "
+                << "and pressure inside the bubble for current time" << endl;
+
+            /*myStream << "ts" << " " << "vr" << "  " << "cgX"  << "  " << "cgY" << "  " << "cgZ" 
+                << "  " << "sumVol*tot" << "  " << "vl*tot" << "  " << "pBubble" << nl << endl;*/
+            
+            myStream  << ts << "  " << vr << "  " << cgX  << "  " << cgY << "  " << cgZ 
+                << "  " << sumVol*tot << "  " << vl*tot << "  " << pBubble << nl << endl;
+
+        }
+    #};
+  }
+}
+
+// ************************************************************************* //

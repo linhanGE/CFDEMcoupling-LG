@@ -1,0 +1,172 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          couplingProperties;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//===========================================================================//
+// sub-models & settings
+modelType B; // A or B
+
+couplingInterval 100;
+
+voidFractionModel divided;//centre;//bigParticle;//
+
+locateModel engine;//turboEngineM2M;//
+
+meshMotionModel noMeshMotion;
+
+IOModel basicIO; //trackIO; // 
+
+probeModel off;
+
+dataExchangeModel twoWayMPI;//M2M;//
+
+averagingModel dense;//dilute;//
+
+clockModel off; //standardClock;//
+
+smoothingModel  constDiffSmoothing; //off;//
+
+//useDDTvoidfraction;
+
+forceModels
+(
+    DiFeliceDrag
+    //SchillerNaumannDrag
+    //KochHillDrag
+    //MeiLift
+    //virtualMassForce
+    //gradPForce
+    //viscForce
+    Archimedes
+);
+
+momCoupleModels
+(
+    implicitCouple
+);
+
+//turbulenceModelType RASProperties;//LESProperties;//OFversion24x
+turbulenceModelType turbulenceProperties;//LESProperties;//OFversion30x
+
+//===========================================================================//
+// sub-model properties
+
+constDiffSmoothingProps
+{
+    lowerLimit 0.0;
+    upperLimit 1e99;
+    smoothingLength 3e-4;
+} 
+
+implicitCoupleProps
+{
+    velFieldName "U";
+    granVelFieldName "Us";
+    voidfractionFieldName "voidfraction";
+}
+
+DiFeliceDragProps
+{
+    velFieldName "U";
+    voidfractionFieldName "voidfraction";
+    granVelFieldName "Us";
+    verbose true;
+    
+    //- use of scalar viscosity for drag
+    //scalarViscosity true;
+    //nu nu [ 0 2 -1 0 0 0 0 ] 1e-04;
+}
+
+SchillerNaumannDragProps
+{
+    velFieldName "U";
+    densityFieldName "rho";
+}
+
+KochHillDragProps
+{
+    velFieldName "U";
+    densityFieldName "rho";
+    voidfractionFieldName "voidfraction";
+}
+
+MeiLiftProps
+{
+    velFieldName "U";
+    densityFieldName "rho";
+}
+
+ArchimedesProps
+{
+    densityFieldName "rho";
+    gravityFieldName "g";
+}
+
+virtualMassForceProps
+{
+    velFieldName "U";
+    densityFieldName "rho";
+}
+
+oneWayVTKProps
+{
+    couplingFilename "vtk_out%4.4d.vtk";
+    maxNumberOfParticles 30000;
+}
+
+"(twoWayMPIProps|M2MProps)"
+{
+    liggghtsPath "../DEM/in.liggghts_run";
+}
+
+twoWayFilesProps
+{
+    maxNumberOfParticles 10000;
+    DEMts 0.00001;
+}
+
+centreProps
+{
+    alphaMin 0.30;
+}
+
+dividedProps
+{
+    alphaMin 0.3;
+    scaleUpVol 1.0;
+}
+
+bigParticleProps
+{
+    maxCellsPerParticle 1000;
+    alphaMin 0.30;
+    scaleUpVol 1.0;
+}
+
+"(engineProps|turboEngineM2MProps)"
+{
+    treeSearch true;
+}
+
+// ************************************************************************* //

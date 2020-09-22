@@ -1,0 +1,196 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          couplingProperties;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//===========================================================================//
+// sub-models & settings
+
+modelType "A"; // A or B
+
+couplingInterval 1;
+
+voidFractionModel diffCentre; // centre; // bubbleCentre
+
+locateModel engine;
+
+meshMotionModel noMeshMotion;
+
+regionModel allRegion;
+
+IOModel off;//basicIO;
+
+probeModel off;
+
+dataExchangeModel twoWayMPI;
+
+averagingModel dense;//dilute;//
+
+clockModel off;//off;
+
+smoothingModel constDiffSmoothing;
+
+forceModels
+(
+    SchillerNaumannDrag
+    gradPForce
+    viscForce
+    virtualMassForce
+	// MeiLift
+	// interface
+);
+
+momCoupleModels
+(
+    explicitCouple     // explicitCouple
+);
+
+//turbulenceModelType "RASProperties";//"LESProperties";//OFversion24x
+turbulenceModelType turbulenceProperties;//"LESProperties";//OFversion30x
+
+//===========================================================================//
+// sub-model properties
+constDiffSmoothingProps
+{
+    lowerLimit 0;
+    upperLimit 0.64;
+	smoothCycles 3;
+    smoothingLength 0.004;
+	// variableDiffusionCoefficient;
+	// smoothDirection (1 0 0 0 1 0 0 0 1);
+	// verbose true;
+}
+
+implicitCoupleProps
+{
+    velFieldName "U";
+    granVelFieldName "Us";
+    voidfractionFieldName "voidfraction";
+}
+
+explicitCoupleProps
+{
+    fLimit (1e10 1e10 1e10);
+}
+
+gradPForceProps
+{
+    pFieldName "p";
+    voidfractionFieldName "voidfraction";
+    velocityFieldName "U";
+	backwardInterpolation;
+}
+
+viscForceProps
+{
+    velocityFieldName "U";
+	backwardInterpolation;
+}
+
+DiFeliceParBubbleDragProps
+{
+    velFieldName "U";
+    voidfractionFieldName "voidfraction";
+    gasfractionFieldName "alphaG";
+    granVelFieldName "Us";
+    alphaGfactor 0.06;
+    alphaSfactor 0.3;
+    gasDensity 1.205;
+	SchillerNaumann;
+    treatForceExplicit true;
+    interpolation true;
+}
+
+DiFeliceDragProps
+{
+    //verbose true;
+    velFieldName "U";
+    voidfractionFieldName "voidfraction";
+    granVelFieldName "Us";
+
+}
+
+SchillerNaumannDragProps
+{
+    velFieldName "U";
+	voidfractionFieldName "voidfraction";
+	granVelFieldName "Us";
+	treatForceExplicit true;
+	backwardInterpolation;
+}
+
+StokesDragProps
+{
+    velFieldName "U";
+    densityFieldName "rho";
+	voidfractionFieldName "voidfraction";
+	granVelFieldName "Us";
+	treatForceExplicit true;
+	f (3.51 0);
+	bubbleCentre (0 0 0);
+	radiusSum 0.0035;
+}
+
+virtualMassForceProps
+{
+    velFieldName "U";
+    phiFieldName "phi";
+	interpolation false;
+	treatForceExplicit true;
+	// backwardInterpolation;
+}
+
+MeiLiftProps
+{
+    velFieldName "U";
+    treatForceExplicit true;
+	backwardInterpolation;
+}
+
+diffCentreProps
+{
+    maxCellsPerParticle 2000;
+	weight 1.;
+	porosity 1;
+}
+
+interfaceProps
+{
+    alphaFieldName "alpha.water";
+	sigmaKFieldName "K";
+	theta 1.0472;
+	alphaLower 0.1;
+	alphaUpper 0.9;
+	// backwardInterpolation;
+}
+
+engineProps
+{
+    treeSearch true;
+}
+
+twoWayMPIProps
+{
+    liggghtsPath "../DEM/in.liggghts_run";
+}
+// ************************************************************************* //

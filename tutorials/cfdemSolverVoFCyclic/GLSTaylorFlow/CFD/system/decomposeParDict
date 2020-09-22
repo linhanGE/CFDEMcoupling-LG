@@ -1,0 +1,50 @@
+/*-------------------------------*- C++ -*---------------------------------*\
+|    =========                                                              |
+|    \\      /     OpenFOAM                                                 |
+|     \\    /                                                               |
+|      \\  /       The Open Source CFD Toolbox                              |
+|       \\/                                        http://www.OpenFOAM.org  |
+\*-------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    note        "mesh decomposition control dictionary";
+    location    "system";
+    object      decomposeParDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+numberOfSubdomains 96;
+
+method          scotch;
+
+scotchCoeffs
+{
+    //processorWeights
+    //(
+    //    1
+    //    1
+    //    1
+    //    1
+    //);
+    //writeGraph  true;
+    //strategy "b";
+}
+
+simpleCoeffs
+{
+    n               (2 2 4);
+    delta           0.001;
+}
+
+distributed     no;
+
+roots           ();
+
+globalFaceZones ( p1 p2 );
+preservePatches ( p1 p2 );
+
+// ************************************************************************* //

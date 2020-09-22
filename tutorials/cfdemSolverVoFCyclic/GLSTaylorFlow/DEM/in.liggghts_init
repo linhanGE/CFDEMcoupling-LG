@@ -1,0 +1,71 @@
+echo            both
+log             ../DEM/log.liggghts
+thermo_log      ../DEM/post/thermo.txt
+
+atom_style      granular
+atom_modify     map array sort 0 0
+communicate     single vel yes
+
+boundary        f f p
+newton          off
+
+units           cgs
+
+region          reg block -0.1 0.1 -0.1 0.1 0 1.5 units box
+create_box      1 reg
+
+neighbor        2.825e-3 bin
+neigh_modify    delay 0
+
+# Material properties required for granular pair styles
+fix         m1 all property/global kn peratomtypepair 1 1e5 
+fix         m2 all property/global kt peratomtypepair 1 1e5
+fix         m3 all property/global coefficientRestitution peratomtypepair 1 0.9
+fix         m4 all property/global coefficientFriction peratomtypepair 1 0.3 
+fix         m5 all property/global fluidViscosity scalar 0.01
+fix         m6 all property/global minSeparationDist peratomtypepair 1 5.65e-7
+fix         m7 all property/global maxSeparationDistRatio scalar 1.5
+
+# pair style
+pair_style gran model hooke/stiffness tangential history cohesion lubrication
+pair_coeff  * *
+
+# timestep, gravity
+timestep    1e-7
+# fix         gravi all gravity 981 vector 0.0 0.0 -1.0
+
+# walls
+# fix         xwalls1 all wall/gran model myhooke/stiffness tangential history primitive type 1  xplane 0
+# fix         xwalls2 all wall/gran model myhooke/stiffness tangential history primitive type 1  xplane 5.0
+# fix         zwalls1 all wall/gran model myhooke/stiffness tangential history primitive type 1  yplane 0.0
+# fix         zwalls2 all wall/gran model myhooke/stiffness tangential history primitive type 1  yplane 1.5
+# fix     zwalls1  all wall/gran model myhooke/stiffness tangential history primitive type 1 zplane 0.0
+# fix     zwalls2  all wall/gran model myhooke/stiffness tangential history primitive type 1 zplane 1.5
+fix     cylwalls all wall/gran model hooke/stiffness tangential history primitive type 1 zcylinder 0.0825 0. 0.
+
+region  r1 cylinder z 0. 0. 0.079 0.13 0.56 units box
+region  r2 cylinder z 0. 0. 0.079 0.88 1.31 units box
+
+fix     pts1 all particletemplate/sphere 15485863 atom_type 1 density constant 1.6 radius constant 0.002825
+fix     pdd1 all particledistribution/discrete 15485867 1 pts1 1.0
+
+fix     ins1 all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. insert_every once overlapcheck yes &
+all_in yes particles_in_region 361 region r1 # volumefraction_region 0.01 ntry_mc 10000
+
+fix     ins2 all insert/pack seed 32452843 distributiontemplate pdd1 vel constant 0. 0. 0. insert_every once overlapcheck yes &
+all_in yes particles_in_region 361 region r2 # volumefraction_region 0.01 ntry_mc 10000
+
+# apply nve integration to all particles that are inserted as single particles
+fix         integr all nve/sphere
+
+# screen output
+compute         rke all erotate/sphere
+thermo_style    custom step atoms ke c_rke vol
+thermo          1000
+thermo_modify   lost ignore norm no
+compute_modify  thermo_temp dynamic yes
+
+# insert the first particles so that dump is not empty
+run     1
+dump dmp all custom 1 ../DEM/post/dump.init id type x y z ix iy iz vx vy vz fx fy fz radius
+write_restart   ../DEM/post/restart/liggghts.restart

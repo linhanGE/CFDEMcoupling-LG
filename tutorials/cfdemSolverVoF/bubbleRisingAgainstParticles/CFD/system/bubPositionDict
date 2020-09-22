@@ -1,0 +1,178 @@
+/*
+ WARNINGS:
+   - code will crash by "0/0" error if the bubble disappears from your domain (somehow) - but then the simulation is ready anyway?
+
+ @Author: 		Kevin van As
+ @Affiliation: 	PhD student at TUDelft
+ @Date: 		04/11/'16
+*/
+
+/************\
+| Initiation |
+\************/
+
+bubDefineGlobalVars{
+  type addGlobalVariable;
+  outputControl timeStep;
+  outputInterval 1;
+
+  globalScope bubble;
+  globalVariables {
+    position {
+      valueType vector;
+      value (0 0 0);
+    }
+  }
+}
+
+/**********\
+| Position |
+\**********/
+
+calcBubPos // Calculate the bubble position only once
+{
+  type calculateGlobalVariables;//swakExpression;
+  valueType internalField;
+  
+  noReset false; //TODO: What does this do???
+ 
+  toGlobalNamespace bubble; //write to this one
+  globalScopes ( //read from these
+    bubble
+  );
+  toGlobalVariables (
+    position
+  );
+  aliases {
+    alphaWater alpha.water;
+  }
+  variables (
+    "alphaAir=1-alphaWater;"
+    "volFract=alphaAir*vol()/sum(alphaAir*vol());"
+    "position=sum(pos()*volFract);"
+  );
+}
+
+bubPos // Write the bubble position
+{
+  type swakExpression;
+  valueType set;
+  setName onePoint; // This causes a single scalar value to be written
+  outputControlMode timeStep;
+  outputInterval 1;
+  verbose false;
+  set {
+    type cloud;
+    axis x;
+    points (
+      (0 0 0)
+    );
+    setName onePoint;
+  }
+
+  accumulations (
+    average
+  );
+  
+  globalScopes (
+    bubble
+  );
+
+  expression "position";
+}
+
+
+/**********\
+| Velocity |
+\**********/
+
+/**
+  * calcBubVel1 linearises the time derivative of bubble.position and takes that value as the rising velocity
+  */
+bubVel1
+{
+  type swakExpression;
+  valueType set;
+  setName onePoint;
+  outputControlMode timeStep;
+  outputInterval 1;
+  verbose false;
+
+  accumulations ( average );
+
+  globalScopes ( bubble );
+
+  storedVariables (
+    {
+      name posZ_prev;
+      initialValue "0.0015";
+    }
+  );
+  
+  expression "vel"; 
+
+  variables (
+    "vel=(position.z-posZ_prev)/deltaT();" 
+    "posZ_prev=position.z;"
+  );
+
+  //debugCommonDriver 1;
+
+}
+
+/**
+  * calcBubVel2 averages the interior velocity of the bubble, which should be its net velocity
+  */
+bubVel2
+{
+  type swakExpression;
+  valueType internalField;
+  outputControlMode timeStep;
+  outputInterval 1;
+  verbose false;
+
+  accumulations ( sum );
+
+  aliases {
+    alphaWater alpha.water;
+  }
+
+  variables (
+    "alphaAir=1-alphaWater;"
+    "volFract=alphaAir*vol()/sum(alphaAir*vol());"
+    "velocity=U*volFract;"
+  );
+
+  expression "velocity";
+
+}
+
+/**
+  * calcBubVel3 averages the interior velocity of the bubble, which should be its net velocity
+  * but now with a mask, instead of multiplying with alpha.
+  * This should give a slightly different result, as alpha=0.6 is technically not water, but it is now assumed to be water.
+  */
+bubVel3
+{
+  type swakExpression;
+  valueType internalField;
+  outputControlMode timeStep;
+  outputInterval 1;
+  verbose false;
+
+  accumulations ( sum );
+
+  aliases {
+    alphaWater alpha.water;
+  }
+
+  variables (
+    "alphaAir=1-alphaWater;"
+    "volFract=(alphaAir >= 0.5 ? vol() : 0)/sum(alphaAir>=0.5 ? vol(): 0);"
+    "velocity=U*volFract;"
+  );
+  
+  expression "velocity";
+
+}
+

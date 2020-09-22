@@ -1,0 +1,7 @@
+cfdemSolverPiso/dir
+cfdemSolverIB/dir
+cfdemSolverPisoScalar/dir
+cfdemSolverPisoSTM/dir
+cfdemSolverDiffusion/dir
+cfdemSolverVoF/dir
+cfdemSolverVoFCyclic

@@ -1,0 +1,59 @@
+echo            both
+log             ../DEM/log.liggghts
+thermo_log      ../DEM/post/thermo.txt
+
+atom_style      granular
+atom_modify     map array sort 0 0
+communicate     single vel yes
+
+boundary        f f p
+newton          off
+
+units           cgs
+
+# read the restart file
+read_restart    ../DEM/post/restart/liggghts.restartCFDEM
+
+neighbor        2.825e-3 bin
+neigh_modify    delay 0
+
+# Material properties required for granular pair styles
+fix         m1 all property/global kn peratomtypepair 1 1e5 
+fix         m2 all property/global kt peratomtypepair 1 1e5
+fix         m3 all property/global coefficientRestitution peratomtypepair 1 0.9 
+fix         m4 all property/global coefficientFriction peratomtypepair 1 0.3 
+fix         m5 all property/global fluidViscosity scalar 0.01
+fix         m6 all property/global minSeparationDist peratomtypepair 1 5.65e-7
+fix         m7 all property/global maxSeparationDistRatio scalar 1.5
+
+# pair style
+pair_style gran model hooke/stiffness tangential history cohesion lubrication
+pair_coeff  * *
+
+# timestep, gravity
+timestep    5e-7
+fix         gravi all gravity 981 vector 0.0 0.0 -1.0
+
+# walls
+fix     cylwalls all wall/gran model hooke/stiffness tangential history primitive type 1 zcylinder 0.0825 0. 0.
+
+# cfd coupling
+fix     cfd all couple/cfd couple_every 100 mpi
+fix     cfd2 all couple/cfd/force transfer_individualForce yes
+
+# apply nve integration to all particles that are inserted as single particles
+fix         integr all nve/sphere/addedmass Cadd 0.5 rhoFluid 0.9982
+
+# screen output
+compute         rke all erotate/sphere
+thermo_style    custom step atoms ke c_rke vol
+thermo          1000
+thermo_modify   lost ignore norm no
+compute_modify  thermo_temp dynamic yes
+
+# insert the first particles so that dump is not empty
+run 0
+dump dmp all custom 4000 ../DEM/post/dump*.run id type x y z vx vy vz fx fy fz radius f_gradPForce[1] f_gradPForce[2] f_gradPForce[3] &
+f_viscForce[1] f_viscForce[2] f_viscForce[3] f_dragOnlyForce[1] f_dragOnlyForce[2] f_dragOnlyForce[3] f_liftForce[1] f_liftForce[2] f_liftForce[3] &
+f_interfaceForce[1] f_interfaceForce[2] f_interfaceForce[3]
+

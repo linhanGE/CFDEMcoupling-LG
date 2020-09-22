@@ -1,0 +1,362 @@
+#----------------------------------*-sh-*--------------------------------------
+# CFDEMcoupling
+# Christoph Goniva
+# June 2012
+#------------------------------------------------------------------------------
+#
+# Script
+#     etc/cshrc
+#
+# Description
+#     Startup file for cfdem exporting environment variables
+#     Sourced  ~/.cshrc
+#
+#- add this block to your ~/.cshrc and modify for your installation
+#- you can test the correctness using cfdemSystemTest.sh
+
+## STANDARD BLOCK FOR REGULAR INSTALLATIONS
+##================================================#
+##- source cfdem env vars
+#setenv CFDEM_VERSION PUBLIC
+#setenv CFDEM_PROJECT_DIR $HOME/CFDEM/CFDEMcoupling-$CFDEM_VERSION-$WM_PROJECT_VERSION
+#setenv CFDEM_PROJECT_USER_DIR $HOME/CFDEM/$LOGNAME-$CFDEM_VERSION-$WM_PROJECT_VERSION
+#setenv CFDEM_bashrc $CFDEM_PROJECT_DIR/src/lagrangian/cfdemParticle/etc/cshrc
+#setenv CFDEM_LIGGGHTS_SRC_DIR $HOME/LIGGGHTS/LIGGGHTS-PUBLIC/src
+#setenv CFDEM_LIGGGHTS_MAKEFILE_NAME auto
+#setenv CFDEM_LPP_DIR $HOME/LIGGGHTS/mylpp/src
+#source $CFDEM_bashrc
+#================================================#
+#------------------------------------------------------------------------------
+
+
+## EXTENDED BLOCK FOR HIGHLY CUSTOMIZED INSTALLATIONS
+## you may insert this right above "source $CFDEM_bashrc"
+##================================================#
+#setenv CFDEM_SRC_DIR $CFDEM_PROJECT_DIR/src
+#setenv CFDEM_SOLVER_DIR $CFDEM_PROJECT_DIR/applications/solvers
+#setenv CFDEM_DOC_DIR $CFDEM_PROJECT_DIR/doc
+#setenv CFDEM_UT_DIR $CFDEM_PROJECT_DIR/applications/utilities
+#setenv CFDEM_TUT_DIR $CFDEM_PROJECT_DIR/tutorials
+#setenv CFDEM_LIGGGHTS_MAKEFILE_POSTFIX
+#setenv CFDEM_VERBOSE=false
+#================================================#
+
+#------------------------------------------------------------------------------
+#- export environment variables (adapt to your paths)
+#------------------------------------------------------------------------------
+
+if (! $?CFDEM_VERBOSE ) setenv CFDEM_VERBOSE true
+
+## small function defs
+alias addPath 'setenv PATH \!*\:${PATH}'
+
+alias addLDLib 'setenv LD_LIBRARY_PATH \!*\:${LD_LIBRARY_PATH}'
+
+alias cfdemecho 'if ($CFDEM_VERBOSE == "true") echo \!*'
+
+alias cfdemecho2 'if ($CFDEM_VERBOSE == "true") echo "using userdefined \!* = ${\!*}"'
+alias setVar 'eval "if (! $?\!:1 ) then \\
+eval setenv \!:1 \!:2 \\
+cfdemecho using default \!:1 = \!:2 \\
+else \\
+cfdemecho2 \!:1 \\
+endif"'
+
+cfdemecho "************************************"
+setVar CFDEM_SRC_DIR $CFDEM_PROJECT_DIR/src
+setVar CFDEM_SOLVER_DIR $CFDEM_PROJECT_DIR/applications/solvers
+setVar CFDEM_DOC_DIR $CFDEM_PROJECT_DIR/doc
+setVar CFDEM_UT_DIR $CFDEM_PROJECT_DIR/applications/utilities
+setVar CFDEM_TUT_DIR $CFDEM_PROJECT_DIR/tutorials
+
+#check if default lammps lib path should be used
+setVar CFDEM_LAMMPS_LIB_DIR $CFDEM_LIGGGHTS_SRC_DIR/../lib
+
+#test CFDEM_LAMMPS_LIB_DIR
+set h=$CFDEM_LAMMPS_LIB_DIR/poems/Makefile.lammps
+if ( ! ($?h) ) then
+    :
+else
+    echo ""
+    echo "WARNING CFDEM_LAMMPS_LIB_DIR = $CFDEM_LAMMPS_LIB_DIR seems to be wrong"
+    echo ""
+endif
+unset h
+
+#- LIGGGHTS lib name
+if ( ($CFDEM_LIGGGHTS_MAKEFILE_NAME == auto) && ($?CFDEM_LIGGGHTS_MAKEFILE_POSTFIX) ) then
+    setenv CFDEM_LIGGGHTS_LIB_NAME "lmp_"$CFDEM_LIGGGHTS_MAKEFILE_NAME"_"$CFDEM_LIGGGHTS_MAKEFILE_POSTFIX
+else
+    setenv CFDEM_LIGGGHTS_LIB_NAME lmp_$CFDEM_LIGGGHTS_MAKEFILE_NAME
+endif
+
+if ( ($WM_COMPILE_OPTION == Debug) && ($CFDEM_LIGGGHTS_MAKEFILE_NAME == auto) ) then
+    setenv CFDEM_LIGGGHTS_LIB_NAME "${CFDEM_LIGGGHTS_LIB_NAME}-fulldebug"
+endif
+
+#- LIGGGHTS lib path
+setVar CFDEM_LIGGGHTS_LIB_PATH $CFDEM_LIGGGHTS_SRC_DIR
+
+#- LIGGGHTS executable
+setenv CFDEM_LIGGGHTS_EXEC $CFDEM_LIGGGHTS_LIB_PATH/$CFDEM_LIGGGHTS_LIB_NAME
+
+#- CFDEM lib name
+setenv CFDEM_LIB_NAME lagrangianCFDEM-$CFDEM_VERSION-$WM_PROJECT_VERSION
+
+#- CFDEM compressible lib name
+setenv CFDEM_LIB_COMP_NAME lagrangianCFDEMcomp-$CFDEM_VERSION-$WM_PROJECT_VERSION
+
+#check if additional libraries should be compiled together with solvers
+setVar CFDEM_ADD_LIBS_DIR $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/addLibs_universal
+setVar CFDEM_ADD_LIBS_NAME additionalLibs_$WM_PROJECT_VERSION
+
+# check addLibs path and file name
+set h=$CFDEM_ADD_LIBS_DIR/$CFDEM_ADD_LIBS_NAME
+if ( ! ($?h) ) then
+    echo "!!! ERROR !!!: CFDEM_ADD_LIBS_DIR/CFDEM_ADD_LIBS_NAME=$CFDEM_ADD_LIBS_DIR/$CFDEM_ADD_LIBS_NAME does not exist."
+endif
+unset h
+
+#-----------------------------------------------------
+# additional libraries
+
+#- LMP Many2Many lib path and makefile
+setenv CFDEM_Many2ManyLIB_PATH $CFDEM_SRC_DIR/lagrangian/cfdemParticle/subModels/dataExchangeModel/twoWayMany2Many/library
+setenv CFDEM_Many2ManyLIB_MAKEFILENAME $CFDEM_LIGGGHTS_MAKEFILE_NAME
+
+#- LMP M2M lib path and makefile
+setenv CFDEM_M2MLIB_PATH $CFDEM_SRC_DIR/lagrangian/cfdemParticle/subModels/dataExchangeModel/M2M/library
+setenv CFDEM_M2MLIB_MAKEFILENAME $CFDEM_LIGGGHTS_MAKEFILE_NAME
+
+#- LMP M2MMS lib path and makefile
+setenv CFDEM_M2MMSLIB_PATH $CFDEM_SRC_DIR/lagrangian/cfdemParticle/subModels/dataExchangeModel/M2M/library
+setenv CFDEM_M2MMSLIB_MAKEFILENAME $CFDEM_LIGGGHTS_MAKEFILE_NAME
+
+#- LMP POEMS lib default path
+setenv CFDEM_POEMSLIB_PATH $CFDEM_LAMMPS_LIB_DIR/poems
+#-----------------------------------------------------
+
+#- path to test harness
+setenv CFDEM_TEST_HARNESS_PATH $CFDEM_PROJECT_USER_DIR/log/logFilesCFDEM-$CFDEM_VERSION-$WM_PROJECT_VERSION
+
+#- path to libraries
+setVar CFDEM_LIB_DIR $CFDEM_PROJECT_DIR/platforms/$WM_OPTIONS/lib
+setVar CFDEM_USER_LIB_DIR $CFDEM_PROJECT_USER_DIR/platforms/$WM_OPTIONS/lib
+
+addLDLib ${CFDEM_LIB_DIR}
+addLDLib ${CFDEM_USER_LIB_DIR}
+
+#- path to apps
+setVar CFDEM_APP_DIR $CFDEM_PROJECT_DIR/platforms/$WM_OPTIONS/bin
+setVar CFDEM_USER_APP_DIR $CFDEM_PROJECT_USER_DIR/platforms/$WM_OPTIONS/bin
+
+addPath ${CFDEM_APP_DIR}
+addPath ${CFDEM_USER_APP_DIR}
+
+#- path to OF version flag file
+setenv CFDEM_OFVERSION_DIR $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/OFversion
+#------------------------------------------------------------------------------
+#- settings for lpp postproc tool
+#------------------------------------------------------------------------------
+
+#- nr of procs for lpp tool
+setenv CFDEM_LPP_NPROCS 1
+
+#- nr of procs for lpp tool
+setenv CFDEM_LPP_CHUNKSIZE 1
+
+#- shortcut to run lpp
+alias cfdemLpp 'python -i $CFDEM_LPP_DIR/lpp.py --cpunum $CFDEM_LPP_NPROCS --chunksize $CFDEM_LPP_CHUNKSIZE \!:1'
+
+#------------------------------------------------------------------------------
+#- aliases for easy navigation (no changes necessary)
+#------------------------------------------------------------------------------
+#- shortcut to cfdem path
+alias cfdem 'cd $CFDEM_PROJECT_DIR'
+
+#- shortcut to src path
+alias cfdemSrc 'cd $CFDEM_SRC_DIR'
+
+#- shortcut to etc path
+alias cfdemEtc 'cd $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc'
+
+#- shortcut to tutorial path
+alias cfdemTut 'cd $CFDEM_TUT_DIR'
+
+#- shortcut to solver path
+alias cfdemSol 'cd $CFDEM_SOLVER_DIR'
+
+#- shortcut to utilities path
+alias cfdemUt 'cd $CFDEM_UT_DIR'
+
+#- shortcut to run path
+alias cfdemRun 'cd $CFDEM_PROJECT_USER_DIR/run'
+
+#- shortcut to user solver path
+alias cfdemUsrSol 'cd $CFDEM_PROJECT_USER_DIR/applications/solvers'
+
+#- shortcut to documentation path
+alias cfdemDoc 'cd $CFDEM_DOC_DIR'
+
+#- shortcut to open the doxygen with firefox
+alias cfdemDox 'firefox $CFDEM_DOC_DIR/doxygen/html/index.html'
+
+#- shortcut to LIGGGHTS path
+alias cfdemLIG 'cd $CFDEM_LIGGGHTS_SRC_DIR'
+
+#- shortcut to system test
+alias cfdemSysTest 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/cfdemSystemTest.sh'
+
+#- shortcut to pull LIGGGHTS
+alias cfdemPullLIG 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/pullLIGGGHTS.sh'
+
+#- shortcut to pull CFDEMcoupling
+alias cfdemPullCFDEMcoupling 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/pullCFDEMcoupling.sh'
+
+#- shortcut to clean CFDEM
+alias cfdemCleanCFDEM 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/cleanCFDEMcoupling.sh'
+
+#- shortcut to compile LIGGGHTS + sublibraries
+alias cfdemCompLIG 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/compileLIGGGHTS.sh'
+
+#- shortcut to compile LIGGGHTS' sublibraries
+alias cfdemCompLIGlibs 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/compileLIGGGHTS_lib.sh'
+
+#- shortcut to compile CFDEMcoupling +LIGGGHTS
+alias cfdemCompCFDEMall 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/compileCFDEMcoupling_all.sh'
+
+#- shortcut to compile CFDEMcoupling (src+solvers)
+alias cfdemCompCFDEM 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/compileCFDEMcoupling.sh'
+
+#- shortcut to compile CFDEMcoupling src
+alias cfdemCompCFDEMsrc 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/compileCFDEMcoupling_src.sh'
+
+#- shortcut to compile CFDEMcoupling solvers
+alias cfdemCompCFDEMsol 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/compileCFDEMcoupling_sol.sh'
+
+#- shortcut to compile CFDEMcoupling utilities
+alias cfdemCompCFDEMuti 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/compileCFDEMcoupling_uti.sh'
+
+#- shortcut to test basic tutorials
+alias cfdemTestTUT 'bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/testTutorials.sh'
+
+#- refresh link to LIGGGHTS binary
+alias cfdemRefreshLigLink='ln -sf $CFDEM_LIGGGHTS_LIB_PATH/lib$CFDEM_LIGGGHTS_LIB_NAME.so $CFDEM_LIB_DIR'
+
+#- shortcut to change dictionaries according to OF version
+#cfdemChangeTutOFversion() { bash $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/OFVersionChange/shellScripts/cfdemChangeTutOFversion_all.sh $1; }
+#export -f cfdemChangeTutOFversion
+
+#- shortcut to visualize the clock model data
+alias vizClock 'python $CFDEM_UT_DIR/vizClock/matPlot.py'
+
+#- recursive touch of current directory
+alias touchRec 'find ./* -exec touch {} \;'
+
+#- shortcut to run liggghts in serial
+alias cfdemLiggghts '$CFDEM_LIGGGHTS_EXEC'
+
+#- shortcut to run liggghts in parallel (no fcts in csh...)
+alias cfdemLiggghtsPar 'echo "mpirun -np xx -machinefile mynodes $CFDEM_LIGGGHTS_EXEC -in in.liggghts_init"'
+
+
+#- shortcut to run lpp
+alias lpp 'python -i $CFDEM_LPP_DIR/lpp.py \!:1'
+
+
+#- alias to unload environment, everything starting with CFDEM_ and containing cfdem
+alias cfdemUnsetEnv 'unsetenv cfdemLiggghts cfdemLiggghtsPar cfdemGrep cfdemListFiles cfdemChangeTutOFversion; unalias cfdemUnsetEnv; set cfdemDirs="$CFDEM_PROJECT_DIR $CFDEM_LIB_DIR $CFDEM_USER_LIB_DIR $CFDEM_APP_DIR $CFDEM_USER_APP_DIR"; set foamClean=$WM_PROJECT_DIR/bin/foamCleanPath; set cleaned=`$foamClean "$PATH" "$cfdemDirs"`; if ( $status == 0 ) setenv PATH "$cleaned"; set cleaned=`($foamClean "$LD_LIBRARY_PATH" "$cfdemDirs"`; if ( $status == 0 ) setenv LD_LIBRARY_PATH "$cleaned"; unsetenv "CFDEM_*"; unalias "cfdem*"; unset foamClean cleaned;'
+
+# check if the directory exists
+if ( -d "$CFDEM_PROJECT_USER_DIR" ) then
+    :
+else
+    if ( -d "$CFDEM_PROJECT_DIR" ) then
+        echo "make new dirs $CFDEM_PROJECT_USER_DIR ? (y/n)"
+	set YN=$<
+        if ( $YN == "y" ) then
+            mkdir -p $CFDEM_PROJECT_USER_DIR
+            cd $CFDEM_PROJECT_USER_DIR
+            mkdir run
+            mkdir -p log/logFilesCFDEM-$CFDEM_VERSION-$WM_PROJECT_VERSION
+            mkdir -p applications/solvers
+            mkdir -p $CFDEM_LIB_DIR
+            mkdir -p $CFDEM_USER_LIB_DIR
+            mkdir -p $CFDEM_APP_DIR
+            mkdir -p $CFDEM_USER_APP_DIR
+        else
+            echo "aborted by user."
+            exit
+        endif
+    else
+        echo "error in CFDEMcoupling's cshrc."
+        exit
+    endif
+endif
+
+# detect OF version
+if ( $WM_PROJECT_VERSION =~ 5.* ) then
+    setenv CFDEM_WM_PROJECT_VERSION 50
+else if ( $WM_PROJECT_VERSION =~ "4.*" ) then
+    setenv CFDEM_WM_PROJECT_VERSION 40
+    cfdemecho "************************************"
+    cfdemecho "WARNING from your CFDEM code!"
+    cfdemecho "WARNING: Coupling with your OpenFOAM(R) version is not officially supported!"
+    cfdemecho "In doubt switch to OpenFOAM(R) 5.x."
+    cfdemecho "************************************"
+    sleep 1.5
+else if ( $WM_PROJECT_VERSION =~ "3.0.*" ) then
+    setenv CFDEM_WM_PROJECT_VERSION 30
+    cfdemecho "************************************"
+    cfdemecho "WARNING from your CFDEM code!"
+    cfdemecho "WARNING: Coupling with your OpenFOAM(R) version is not officially supported!"
+    cfdemecho "In doubt switch to OpenFOAM(R) 5.x."
+    cfdemecho "************************************"
+    sleep 1.5
+else if ( $WM_PROJECT_VERSION =~ "v1606+" ) then
+    setenv CFDEM_WM_PROJECT_VERSION v1606
+    cfdemecho "************************************"
+    cfdemecho "WARNING from your CFDEM code!"
+    cfdemecho "WARNING: Coupling with your OpenFOAM(R) version is not officially supported!"
+    cfdemecho "In doubt switch to OpenFOAM(R) 5.x."
+    cfdemecho "************************************"
+    sleep 1.5
+else if ( $WM_PROJECT_VERSION =~ "v1612+" ) then
+    setenv CFDEM_WM_PROJECT_VERSION v1606
+    cfdemecho "************************************"
+    cfdemecho "WARNING from your CFDEM code!"
+    cfdemecho "WARNING: Coupling with your OpenFOAM(R) version is not officially supported!"
+    cfdemecho "In doubt switch to OpenFOAM(R) 5.x."
+    cfdemecho "************************************"
+    sleep 1.5
+else if ( $WM_PROJECT_VERSION =~ "2.4.*" ) then
+    setenv CFDEM_WM_PROJECT_VERSION 24
+    cfdemecho "************************************"
+    cfdemecho "WARNING from your CFDEM code!"
+    cfdemecho "WARNING: Coupling with your OpenFOAM(R) version is not officially supported!"
+    cfdemecho "In doubt switch to OpenFOAM(R) 5.x."
+    cfdemecho "************************************"
+    sleep 1.5
+else if ( $WM_PROJECT_VERSION == "3.2" ) then
+    if ( $WM_FORK == "extend" ) then
+        setenv CFDEM_WM_PROJECT_VERSION 132
+    endif
+    cfdemecho "************************************"
+    cfdemecho "WARNING from your CFDEM code!"
+    cfdemecho "WARNING: Coupling with your OpenFOAM(R) version is not officially supported!"
+    cfdemecho "In doubt switch to OpenFOAM(R) 5.x."
+    cfdemecho "************************************"
+    sleep 1.5
+else
+    clear
+    cfdemecho "************************************"
+    cfdemecho "ERROR from your CFDEM code!"
+    cfdemecho "ERROR: your OpenFOAM(R) version is not supported!"
+    cfdemecho "Please use a version that is supported, i.e., see the bashrc file in the source directory!"
+    cfdemecho "************************************"
+    sleep 1.5
+endif
+
+cfdemecho "************************************"
+
+unalias addPath addLDLib cfdemecho cfdemecho2 setVar

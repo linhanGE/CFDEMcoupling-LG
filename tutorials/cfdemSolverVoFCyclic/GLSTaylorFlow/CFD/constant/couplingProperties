@@ -1,0 +1,167 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          couplingProperties;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//===========================================================================//
+// sub-models & settings
+
+modelType "A"; // A or B
+
+couplingInterval 8;
+
+voidFractionModel diffCentre; // centre; // bubbleCentre
+
+locateModel engine;
+
+meshMotionModel noMeshMotion;
+
+regionModel allRegion;
+
+IOModel off;//basicIO;
+
+probeModel off;
+
+dataExchangeModel twoWayMPI;
+
+averagingModel dilute;//dilute;//
+
+clockModel off;//off;
+
+smoothingModel constDiffSmoothing;
+
+passIndividualForce on;   // used to ouput every fluid-solid interaction force in LIGGGHTS
+
+useDiluteModel on;        // exclude the effect of particle volume fraction (e.g., alphap = 1)
+
+forceModels
+(
+    SchillerNaumannDrag
+    gradPForce
+    viscForce
+    virtualMassForce
+	MeiLift
+	interface
+);
+
+momCoupleModels
+(
+    explicitCouple     // explicitCouple
+);
+
+//turbulenceModelType "RASProperties";//"LESProperties";//OFversion24x
+turbulenceModelType turbulenceProperties;//"LESProperties";//OFversion30x
+
+//===========================================================================//
+// sub-model properties
+constDiffSmoothingProps
+{
+    lowerLimit 0;
+    upperLimit 0.64;
+	smoothCycles 2;
+    smoothingLength 0.0113;
+}
+
+implicitCoupleProps
+{
+    velFieldName "U";
+    granVelFieldName "Us";
+    voidfractionFieldName "voidfraction";
+}
+
+explicitCoupleProps
+{
+    fLimit (1e10 1e10 1e10);
+}
+
+gradPForceProps
+{
+    pFieldName "p";
+    voidfractionFieldName "voidfraction";
+    velocityFieldName "U";
+    backwardInterpolation;
+}
+
+viscForceProps
+{
+    velocityFieldName "U";
+    interpolation false;
+	backwardInterpolation;
+}
+
+SchillerNaumannDragProps
+{
+    velFieldName "U";
+    densityFieldName "rho";
+	voidfractionFieldName "voidfraction";
+	granVelFieldName "Us";
+	treatForceExplicit true;
+	backwardInterpolation;
+}
+
+virtualMassForceProps
+{
+    velFieldName "U";
+    phiFieldName "phi";
+	interpolation false;
+	treatForceExplicit true;
+	backwardInterpolation;
+}
+
+MeiLiftProps
+{
+    velFieldName "U";
+    treatForceExplicit true;
+	backwardInterpolation;
+}
+
+diffCentreProps
+{
+    maxCellsPerParticle 2000;
+	weight 1.;
+	porosity 1;
+}
+
+interfaceProps
+{
+    alphaFieldName "alpha.water";
+	sigmaKFieldName "K";
+	theta 1.0472;
+	alphaLower 0.1;
+	alphaUpper 0.9;
+	C          -10;
+	limitForce;
+	treatForceExplicit true;
+	backwardInterpolation;
+}
+
+engineProps
+{
+    treeSearch true;
+}
+
+twoWayMPIProps
+{
+    liggghtsPath "../DEM/in.liggghts_run";
+}
+// ************************************************************************* //
